@@ -238,7 +238,7 @@ async def async_setup_entry(
     mac = entry.data[CONF_MAC]
 
     async_add_entities(
-        EPEverSensor(coordinator, description, mac)
+        EPEverSensor(coordinator, description, mac, entry.title)
         for description in SENSOR_DESCRIPTIONS
     )
 
@@ -254,15 +254,15 @@ class EPEverSensor(CoordinatorEntity[EPEverBLECoordinator], SensorEntity):
         coordinator: EPEverBLECoordinator,
         description: EPEverSensorDescription,
         mac: str,
+        device_name: str,
     ) -> None:
         super().__init__(coordinator)
         self.entity_description = description
         self._attr_unique_id = f"{mac}_{description.key}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, mac)},
-            name=f"EPEVER Solar Charge Controller {mac[-8:]}",
+            name=device_name,
             manufacturer="EPEver",
-            model="BLE Solar Charge Controller",
         )
 
     @property

@@ -5,7 +5,7 @@
 - Add HACS metadata and automated HACS/hassfest validation.
 - Add protocol and register-parsing tests.
 - Document direct hardware validation with the EPEVER XTRA3210N G3.
-- Use a model-neutral Home Assistant device identity for supported BLE controllers.
+- Derive the Home Assistant device name from the config entry instead of hardcoding a model or household-specific identity.
 
 ## 1.0.0
 
