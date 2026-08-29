@@ -17,7 +17,7 @@ from . import L2capBLE, read_all_data, verify_modbus_crc
 
 def display_data(data: dict):
     print("\n" + "=" * 55)
-    print("  EPEver Tracer CPN 7810 - Live Data")
+    print("  EPEVER BLE Solar Charge Controller - Live Data")
     print("=" * 55)
 
     has_rt = any(
@@ -132,7 +132,7 @@ def scan_devices(timeout: int = 10):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="EPEver Tracer CPN 7810 BLE Client")
+    parser = argparse.ArgumentParser(description="EPEVER BLE Solar Charge Controller Client")
     parser.add_argument("--scan", action="store_true",
                         help="Scan for nearby BLE devices")
     parser.add_argument("--addr", type=str,

@@ -1,9 +1,18 @@
 # epever-ble
 
-A Python tool and Home Assistant integration to read data from EPEver Tracer charge controllers over Bluetooth Low Energy (BLE) — no RS-485 adapter or additional hardware required.
+A Python tool and Home Assistant integration to read data from compatible EPEVER solar charge controllers over Bluetooth Low Energy (BLE) — no RS-485 adapter or additional hardware required.
 
-Tested on the **EPEver Tracer CPN 7810** with its built-in HN-series BLE module. On the HA forum it was also [reported to work with a Tracer AN2206]( 
-https://community.home-assistant.io/t/monitor-epever-tracer-charge-controllers-via-built-in-ble-dongle/998646).
+## Hardware compatibility
+
+Compatibility depends on the controller's BLE GATT handle layout, not only on the Modbus register map.
+
+| Controller | BLE module/name | Evidence |
+|---|---|---|
+| EPEVER Tracer CPN 7810 | Built-in HN-series BLE | Directly tested by the original author |
+| EPEVER XTRA3210N G3 | Built-in `HN_` BLE | Directly tested in Home Assistant 2026.8.3 |
+| EPEVER Tracer AN2206 | Not recorded | [Community report](https://community.home-assistant.io/t/monitor-epever-tracer-charge-controllers-via-built-in-ble-dongle/998646) |
+
+Other EPEVER controllers are not implied compatible. Models using an external eBox-BLE-01 may expose a different GATT layout.
 
 ## What it reads
 
@@ -99,11 +108,22 @@ python -m epever_ble --addr XX:XX:XX:XX:XX:XX --raw 0104310000013f36
 python -m epever_ble --addr XX:XX:XX:XX:XX:XX -v
 ```
 
-## Home Assistant Integration
+## Home Assistant integration
 
 A custom integration that exposes all charge controller data as Home Assistant sensor entities.
 
-### Installation
+### Installation with HACS
+
+Until the repository is included in the default HACS catalog, add it as a custom repository:
+
+1. Open **HACS > Integrations**.
+2. Open the three-dot menu and select **Custom repositories**.
+3. Add `https://github.com/eliasweingaertner/epever-ble` with category **Integration**.
+4. Install **EPEVER BLE** and restart Home Assistant.
+5. Go to **Settings > Devices & Services > Add Integration** and search for **EPEVER BLE**.
+6. Select the controller from the discovered devices, or enter its MAC address manually.
+
+### Manual installation
 
 1. Copy the `custom_components/epever_ble` directory into your Home Assistant `config/custom_components/` directory:
 
@@ -113,7 +133,7 @@ A custom integration that exposes all charge controller data as Home Assistant s
 
 2. Restart Home Assistant.
 
-3. Go to **Settings > Devices & Services > Add Integration** and search for **EPEver BLE**.
+3. Go to **Settings > Devices & Services > Add Integration** and search for **EPEVER BLE**.
 
 4. Select your charge controller from the discovered devices, or enter the MAC address manually.
 
@@ -164,7 +184,7 @@ Energy sensors use `total_increasing` state class, making them compatible with H
 
 ## How it works
 
-The EPEver CPN's built-in BLE module exposes a GATT service that acts as a Modbus RTU bridge. Standard Modbus frames (with CRC16) are written to one characteristic and responses arrive as notifications on another.
+The compatible controllers' built-in BLE module exposes a GATT service that acts as a Modbus RTU bridge. Standard Modbus frames (with CRC16) are written to one characteristic and responses arrive as notifications on another.
 
 The script opens a raw L2CAP socket on the ATT fixed channel (CID 4) — the same approach as `gatttool` — and speaks the ATT protocol directly. This bypasses BlueZ's GATT service discovery layer, which the HN-series BLE module cannot handle (it disconnects during discovery).
 
@@ -199,7 +219,7 @@ The Modbus register map is the standard EPEver Tracer map:
 
 - **Linux only** — uses Linux-specific L2CAP Bluetooth sockets and `ctypes` to construct `sockaddr_l2` structures.
 - BLE default MTU is 20 bytes, so responses for large register reads arrive fragmented. The script works around this by reading in small batches (8 registers at a time).
-- ATT handles are hardcoded from the CPN 7810's GATT layout. Other EPEver Tracer models with built-in BLE (HN_ prefix in device name) likely work too since they share the same Modbus register map, but handle assignments could differ. Models using external BLE dongles (eBox-BLE-01) may use different GATT UUIDs (typically FFE0/FFE1).
+- ATT handles are hardcoded from the CPN 7810's GATT layout. The same layout was directly validated on an XTRA3210N G3 with built-in `HN_` BLE. Other models must be tested individually; sharing the EPEVER Modbus register map does not prove BLE handle compatibility. Models using external BLE dongles (eBox-BLE-01) may use different GATT UUIDs (typically FFE0/FFE1).
 - The Home Assistant integration uses raw L2CAP sockets, which may require Bluetooth capabilities (`CAP_NET_ADMIN`, `CAP_NET_RAW`) on the Python process depending on your setup. On Home Assistant OS this works out of the box.
 
 ## Background

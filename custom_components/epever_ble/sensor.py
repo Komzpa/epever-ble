@@ -260,9 +260,9 @@ class EPEverSensor(CoordinatorEntity[EPEverBLECoordinator], SensorEntity):
         self._attr_unique_id = f"{mac}_{description.key}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, mac)},
-            name=f"EPEver {mac[-8:]}",
+            name=f"EPEVER Solar Charge Controller {mac[-8:]}",
             manufacturer="EPEver",
-            model="Tracer CPN",
+            model="BLE Solar Charge Controller",
         )
 
     @property
