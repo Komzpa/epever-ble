@@ -1,13 +1,28 @@
 [build-system]
 requires = ["setuptools>=64"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta:__legacy__"
 
 [project]
 name = "epever-ble"
-version = "1.0.0"
+version = "1.1.0"
 description = "Read data from EPEver charge controllers over Bluetooth Low Energy"
 requires-python = ">=3.10"
 license = "MIT"
 
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
 [project.scripts]
 epever-ble = "epever_ble.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["epever_ble*", "custom_components.epever_ble*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"custom_components.epever_ble" = [
+  "brand/*.png",
+  "manifest.json",
+  "strings.json",
+  "translations/*.json",
+]
