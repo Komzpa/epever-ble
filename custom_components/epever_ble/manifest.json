@@ -1,8 +1,15 @@
 {
   "domain": "epever_ble",
-  "name": "EPEver BLE Solar Charge Controller",
+  "name": "EPEVER BLE Solar Charge Controller",
+  "bluetooth": [
+    {
+      "connectable": true,
+      "local_name": "HN_*"
+    }
+  ],
   "codeowners": ["@eliasweingaertner"],
   "config_flow": true,
+  "dependencies": ["bluetooth_adapters"],
   "documentation": "https://github.com/eliasweingaertner/epever-ble",
   "integration_type": "device",
   "iot_class": "local_polling",

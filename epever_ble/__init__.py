@@ -1,4 +1,4 @@
-"""EPEver BLE — communicate with EPEver charge controllers over Bluetooth.
+"""EPEVER BLE — communicate with EPEVER charge controllers over Bluetooth.
 
 Thin wrapper that re-exports from custom_components/epever_ble/ so the
 BLE protocol code lives in one place (the HA custom component is
@@ -25,13 +25,16 @@ def _load_module(name, filepath):
 
 
 _ble_mod = _load_module("epever_ble._ble", os.path.join(_component_dir, "ble.py"))
-_reader_mod = _load_module("epever_ble._reader", os.path.join(_component_dir, "reader.py"))
+_reader_mod = _load_module(
+    "epever_ble._reader", os.path.join(_component_dir, "reader.py")
+)
 
 L2capBLE = _ble_mod.L2capBLE
 build_modbus_read = _ble_mod.build_modbus_read
 modbus_crc16 = _ble_mod.modbus_crc16
 verify_modbus_crc = _ble_mod.verify_modbus_crc
 read_all_data = _reader_mod.read_all_data
+async_read_all_data = _reader_mod.async_read_all_data
 CHARGING_MODES = _reader_mod.CHARGING_MODES
 
 __all__ = [
@@ -40,5 +43,6 @@ __all__ = [
     "modbus_crc16",
     "verify_modbus_crc",
     "read_all_data",
+    "async_read_all_data",
     "CHARGING_MODES",
 ]

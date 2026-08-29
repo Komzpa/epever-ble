@@ -1,5 +1,7 @@
+import asyncio
+
 import epever_ble
-from epever_ble import read_all_data
+from epever_ble import async_read_all_data, read_all_data
 
 
 class FakeBLE:
@@ -14,9 +16,7 @@ class FakeBLE:
             (0x3304, 8): [5, 0, 6, 0, 7, 0, 8, 0],
         }
 
-    def read_input_registers(
-        self, start: int, count: int, slave: int = 1
-    ) -> list[int]:
+    def read_input_registers(self, start: int, count: int, slave: int = 1) -> list[int]:
         self.calls.append((start, count, slave))
         return self.responses[(start, count)]
 
@@ -68,3 +68,29 @@ def test_read_all_data_keeps_missing_batches_absent(monkeypatch) -> None:
             return None
 
     assert read_all_data(NoDataBLE()) == {}
+
+
+def test_async_read_all_data_matches_sync_reader(monkeypatch) -> None:
+    monkeypatch.setattr(epever_ble._reader_mod.asyncio, "sleep", _no_async_sleep)
+    sync_ble = FakeBLE()
+
+    class AsyncFakeBLE:
+        def __init__(self) -> None:
+            self.calls: list[tuple[int, int, int]] = []
+
+        async def read_input_registers(
+            self, start: int, count: int, slave: int = 1
+        ) -> list[int]:
+            self.calls.append((start, count, slave))
+            return sync_ble.responses[(start, count)]
+
+    async_ble = AsyncFakeBLE()
+    data = asyncio.run(async_read_all_data(async_ble))
+
+    monkeypatch.setattr(epever_ble._reader_mod.time, "sleep", lambda _: None)
+    assert data == read_all_data(sync_ble)
+    assert async_ble.calls == sync_ble.calls
+
+
+async def _no_async_sleep(_delay: float) -> None:
+    return None

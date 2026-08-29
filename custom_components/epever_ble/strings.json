@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "EPEver BLE Charge Controller",
-        "description": "Select your EPEver charge controller from the discovered Bluetooth devices.",
+        "title": "EPEVER BLE Charge Controller",
+        "description": "Select your EPEVER charge controller from the discovered Bluetooth devices.",
         "data": {
           "mac": "Device",
           "scan_interval": "Update interval (seconds)"
@@ -13,14 +13,24 @@
         }
       },
       "manual": {
-        "title": "EPEver BLE Charge Controller",
+        "title": "EPEVER BLE Charge Controller",
         "description": "Enter the Bluetooth MAC address of your charge controller manually.",
         "data": {
           "mac": "MAC Address",
           "scan_interval": "Update interval (seconds)"
         },
         "data_description": {
-          "mac": "Bluetooth MAC address (e.g. AA:BB:CC:DD:EE:FF). Pair the device first with `bluetoothctl`.",
+          "mac": "Bluetooth MAC address (e.g. AA:BB:CC:DD:EE:FF). Home Assistant may reach it through a local adapter or a connectable Bluetooth proxy.",
+          "scan_interval": "How often to poll the controller. Minimum 10 seconds."
+        }
+      },
+      "bluetooth_confirm": {
+        "title": "Add {name}",
+        "description": "Set up the EPEVER controller discovered by Home Assistant Bluetooth.",
+        "data": {
+          "scan_interval": "Update interval (seconds)"
+        },
+        "data_description": {
           "scan_interval": "How often to poll the controller. Minimum 10 seconds."
         }
       }

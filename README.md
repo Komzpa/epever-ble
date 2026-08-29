@@ -9,7 +9,7 @@ Compatibility depends on the controller's BLE GATT handle layout, not only on th
 | Controller | BLE module/name | Evidence |
 |---|---|---|
 | EPEVER Tracer CPN 7810 | Built-in HN-series BLE | Directly tested by the original author |
-| EPEVER XTRA3210N G3 | Built-in `HN_` BLE | Directly tested in Home Assistant 2026.8.3 |
+| EPEVER XTRA3210N G3 | Built-in `HN_` BLE | Directly tested in Home Assistant 2026.8.3 through local Bluetooth and an ESPHome Bluetooth proxy |
 | EPEVER Tracer AN2206 | Not recorded | [Community report](https://community.home-assistant.io/t/monitor-epever-tracer-charge-controllers-via-built-in-ble-dongle/998646) |
 
 Other EPEVER controllers are not implied compatible. Models using an external eBox-BLE-01 may expose a different GATT layout.
@@ -24,7 +24,7 @@ Other EPEVER controllers are not implied compatible. Models using an external eB
 
 ```
 =======================================================
-  EPEver Tracer CPN 7810 - Live Data
+  EPEVER Tracer CPN 7810 - Live Data
 =======================================================
 
   --- Solar Panel (PV) ---
@@ -62,16 +62,16 @@ Other EPEVER controllers are not implied compatible. Models using an external eB
 =======================================================
 ```
 
-## Requirements
+## Standalone CLI requirements
 
 - Linux with BlueZ 5.x
 - Python 3.10+
 - No Python dependencies beyond the standard library
 - `bluetoothctl` (included with BlueZ) is used for device scanning
 
-## Pairing
+## Standalone pairing
 
-Pairing may not be necessary — on Home Assistant OS, the integration has been tested to work without prior pairing. If the device isn't connecting, try pairing manually via `bluetoothctl`:
+Pairing may not be necessary. If the standalone CLI cannot connect, try pairing manually via `bluetoothctl`:
 
 ```bash
 bluetoothctl
@@ -112,6 +112,8 @@ python -m epever_ble --addr XX:XX:XX:XX:XX:XX -v
 
 A custom integration that exposes all charge controller data as Home Assistant sensor entities.
 
+The integration uses Home Assistant's Bluetooth manager. Home Assistant may choose a local adapter or any connectable remote adapter, including an ESPHome Bluetooth proxy; the integration does not open a local Linux Bluetooth socket or fall back around that choice.
+
 ### Installation with HACS
 
 Until the repository is included in the default HACS catalog, add it as a custom repository:
@@ -137,20 +139,7 @@ Until the repository is included in the default HACS catalog, add it as a custom
 
 4. Select your charge controller from the discovered devices, or enter the MAC address manually.
 
-If the integration fails to connect, you may need to:
-
-- **Grant Bluetooth permissions.** The integration uses raw L2CAP sockets, which require either root or the `CAP_NET_ADMIN` and `CAP_NET_RAW` capabilities on the Python binary:
-
-   ```bash
-   # Option A: set capabilities on the Python binary (recommended)
-   sudo setcap 'cap_net_admin,cap_net_raw+eip' $(readlink -f $(which python3))
-
-   # Option B: if running in a container, add NET_ADMIN and NET_RAW capabilities
-   ```
-
-- **Pair the device** on the host running Home Assistant (see [Pairing](#pairing) above).
-
-On Home Assistant OS, neither of these steps was needed in testing.
+If the integration cannot find the controller, verify that Home Assistant has a working local Bluetooth adapter or a connectable Bluetooth proxy with a free connection slot. Pairing and raw-socket capabilities are not required by the Home Assistant integration.
 
 ### Entities
 
@@ -186,17 +175,21 @@ Energy sensors use `total_increasing` state class, making them compatible with H
 
 The compatible controllers' built-in BLE module exposes a GATT service that acts as a Modbus RTU bridge. Standard Modbus frames (with CRC16) are written to one characteristic and responses arrive as notifications on another.
 
-The script opens a raw L2CAP socket on the ATT fixed channel (CID 4) — the same approach as `gatttool` — and speaks the ATT protocol directly. This bypasses BlueZ's GATT service discovery layer, which the HN-series BLE module cannot handle (it disconnects during discovery).
+The Home Assistant integration resolves the controller through Home Assistant's Bluetooth manager and uses Bleak GATT characteristics by UUID. This keeps adapter selection, connection slots, and ESPHome Bluetooth proxy routing under Home Assistant's control.
+
+The standalone CLI has no Home Assistant dependency. It retains the original raw L2CAP implementation and speaks ATT directly through the host's local Linux Bluetooth adapter.
 
 **GATT layout:**
 
-| Role | UUID | Handle | Properties |
-|------|------|--------|------------|
+| Role | UUID | Raw ATT value handle | Properties |
+|------|------|----------------------|------------|
 | Write (TX) | `00002b14` | `0x001e` | Write Without Response, Notify |
 | Notify (RX) | `00002b10` | `0x0010` | Notify |
 | Notify (mirror) | `00002b16` | `0x0026` | Notify |
 
-The Modbus register map is the standard EPEver Tracer map:
+The Home Assistant transport resolves these by UUID. Raw ATT value handles are used only by the standalone CLI and are not interchangeable with Bleak characteristic handles.
+
+The Modbus register map is the standard EPEVER Tracer map:
 
 | Register | Description | Unit | Scale |
 |----------|-------------|------|-------|
@@ -217,21 +210,21 @@ The Modbus register map is the standard EPEver Tracer map:
 
 ## Known limitations
 
-- **Linux only** — uses Linux-specific L2CAP Bluetooth sockets and `ctypes` to construct `sockaddr_l2` structures.
+- The standalone CLI is Linux-only because it uses Linux-specific L2CAP Bluetooth sockets. The Home Assistant integration uses Home Assistant's cross-adapter Bluetooth API instead.
 - BLE default MTU is 20 bytes, so responses for large register reads arrive fragmented. The script works around this by reading in small batches (8 registers at a time).
-- ATT handles are hardcoded from the CPN 7810's GATT layout. The same layout was directly validated on an XTRA3210N G3 with built-in `HN_` BLE. Other models must be tested individually; sharing the EPEVER Modbus register map does not prove BLE handle compatibility. Models using external BLE dongles (eBox-BLE-01) may use different GATT UUIDs (typically FFE0/FFE1).
-- The Home Assistant integration uses raw L2CAP sockets, which may require Bluetooth capabilities (`CAP_NET_ADMIN`, `CAP_NET_RAW`) on the Python process depending on your setup. On Home Assistant OS this works out of the box.
+- The built-in `HN_` profile was directly validated on an XTRA3210N G3. Other models must be tested individually; sharing the EPEVER Modbus register map does not prove BLE profile compatibility. Models using external BLE dongles (eBox-BLE-01) may use different GATT UUIDs (typically FFE0/FFE1).
+- Device names and controller models are not hardcoded in the integration. The config entry and Home Assistant device registry own the user-visible identity.
 
 ## Background
 
-This project was born out of frustration: the EPEver Tracer CPN 7810 has a perfectly good built-in Bluetooth interface, but the only way to use it is through EPEver's proprietary "Solar Guardian" Android app. There is no open-source library, no protocol documentation, and no way to log data to your own system.
+This project was born out of frustration: the EPEVER Tracer CPN 7810 has a perfectly good built-in Bluetooth interface, but the only way to use it is through EPEVER's proprietary "Solar Guardian" Android app. There is no open-source library, no protocol documentation, and no way to log data to your own system.
 
 The protocol was reverse-engineered in a single session by:
 
 1. **Capturing a Bluetooth HCI snoop log** from Android while using the Solar Guardian app. Android has a developer option to log all Bluetooth traffic to a file.
 2. **Parsing the btsnoop log** to extract ATT/GATT packets, identifying two separate BLE connections and the data exchange patterns.
 3. **Discovering the GATT services** using `gatttool --primary` and `--characteristics` to map out the GATT service/characteristic layout.
-4. **Identifying the Modbus register map** from the [epevermodbus](https://github.com/rosswarren/epevermodbus) Python library, which documents the full register map for EPEver Tracer controllers over RS-485. The registers are identical regardless of transport.
+4. **Identifying the Modbus register map** from the [epevermodbus](https://github.com/rosswarren/epevermodbus) Python library, which documents the full register map for EPEVER Tracer controllers over RS-485. The registers are identical regardless of transport.
 5. **Confirming the protocol** by writing a Modbus RTU frame to the write characteristic and receiving a valid response via notifications.
 
 The entire reverse-engineering and implementation was done with [Claude Code](https://claude.ai/claude-code).
@@ -240,11 +233,11 @@ The entire reverse-engineering and implementation was done with [Claude Code](ht
 
 These resources were used during development:
 
-- **[epevermodbus](https://github.com/rosswarren/epevermodbus)** — Python library for EPEver Tracer controllers over RS-485. Provided the complete Modbus register map.
+- **[epevermodbus](https://github.com/rosswarren/epevermodbus)** — Python library for EPEVER Tracer controllers over RS-485. Provided the complete Modbus register map.
 - **[Android Bluetooth HCI snoop log](https://developer.android.com/develop/connectivity/bluetooth/ble/ble-overview)** — Android's developer option to capture BLE traffic was essential for reverse-engineering the GATT protocol.
 - **[Modbus RTU specification](https://modbus.org/specs.php)** — The framing, function codes, and CRC16 algorithm.
 - **[Bluetooth GATT specification](https://www.bluetooth.com/specifications/specs/core-specification/)** — For understanding ATT handles, CCCDs, notifications, and service discovery.
-- **Linux L2CAP / ATT sockets** — The script opens a raw L2CAP SEQPACKET socket on CID 4 (ATT) and speaks the ATT protocol directly, bypassing BlueZ's GATT layer. The syscall sequence was determined by `strace`-ing `gatttool`.
+- **Linux L2CAP / ATT sockets** — The standalone CLI opens a raw L2CAP SEQPACKET socket on CID 4 (ATT). The syscall sequence was determined by `strace`-ing `gatttool`.
 
 ## License
 

@@ -1,4 +1,4 @@
-"""BLE communication with EPEver charge controllers via raw L2CAP ATT sockets.
+"""BLE communication with EPEVER charge controllers via raw L2CAP ATT sockets.
 
 Uses raw L2CAP sockets (same approach as gatttool) to bypass BlueZ's GATT
 service discovery, which the HN-series BLE module cannot handle.
@@ -34,16 +34,16 @@ def modbus_crc16(data: bytes) -> int:
 
 
 def build_modbus_read(slave: int, func: int, start_reg: int, count: int) -> bytes:
-    frame = struct.pack('>BBHH', slave, func, start_reg, count)
+    frame = struct.pack(">BBHH", slave, func, start_reg, count)
     crc = modbus_crc16(frame)
-    frame += struct.pack('<H', crc)
+    frame += struct.pack("<H", crc)
     return frame
 
 
 def verify_modbus_crc(data: bytes) -> bool:
     if len(data) < 4:
         return False
-    return modbus_crc16(data[:-2]) == struct.unpack('<H', data[-2:])[0]
+    return modbus_crc16(data[:-2]) == struct.unpack("<H", data[-2:])[0]
 
 
 # --- ATT protocol opcodes ---
@@ -74,7 +74,7 @@ BT_SECURITY_LOW = 1
 def _build_sockaddr_l2(addr_bytes: bytes, cid: int, bdaddr_type: int) -> bytes:
     """Build a sockaddr_l2 structure for L2CAP BLE connections."""
     return struct.pack(
-        '<HH6sHBx',
+        "<HH6sHBx",
         socket.AF_BLUETOOTH,
         0,
         addr_bytes,
@@ -97,19 +97,23 @@ class L2capBLE:
         self.addr_type = addr_type
         self.connected = False
         self._sock: Optional[socket.socket] = None
-        self._libc = ctypes.CDLL(ctypes.util.find_library('c'), use_errno=True)
+        self._libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
 
     def connect(self) -> bool:
         _LOGGER.debug("Connecting to %s", self.address)
 
-        bdaddr_type = BDADDR_LE_RANDOM if self.addr_type == "random" else BDADDR_LE_PUBLIC
-        addr_bytes = bytes(reversed([int(x, 16) for x in self.address.split(':')]))
+        bdaddr_type = (
+            BDADDR_LE_RANDOM if self.addr_type == "random" else BDADDR_LE_PUBLIC
+        )
+        addr_bytes = bytes(reversed([int(x, 16) for x in self.address.split(":")]))
 
         self._sock = socket.socket(
-            socket.AF_BLUETOOTH, socket.SOCK_SEQPACKET, socket.BTPROTO_L2CAP,
+            socket.AF_BLUETOOTH,
+            socket.SOCK_SEQPACKET,
+            socket.BTPROTO_L2CAP,
         )
 
-        bind_sa = _build_sockaddr_l2(b'\x00' * 6, L2CAP_CID_ATT, bdaddr_type)
+        bind_sa = _build_sockaddr_l2(b"\x00" * 6, L2CAP_CID_ATT, bdaddr_type)
         ret = self._libc.bind(
             self._sock.fileno(),
             ctypes.create_string_buffer(bind_sa),
@@ -122,7 +126,9 @@ class L2capBLE:
             self._sock = None
             return False
 
-        self._sock.setsockopt(SOL_BLUETOOTH, BT_SECURITY, struct.pack('BB', BT_SECURITY_LOW, 0))
+        self._sock.setsockopt(
+            SOL_BLUETOOTH, BT_SECURITY, struct.pack("BB", BT_SECURITY_LOW, 0)
+        )
 
         self._sock.setblocking(False)
         conn_sa = _build_sockaddr_l2(addr_bytes, L2CAP_CID_ATT, bdaddr_type)
@@ -160,9 +166,9 @@ class L2capBLE:
 
     def enable_notifications(self) -> bool:
         """Enable notifications by writing 0x0100 to the CCCD handles."""
-        enable_value = b'\x01\x00'
+        enable_value = b"\x01\x00"
         for cccd in [NOTIFY_CCCD_1, NOTIFY_CCCD_2, NOTIFY_CCCD_3]:
-            pdu = struct.pack('<BH', ATT_WRITE_REQUEST, cccd) + enable_value
+            pdu = struct.pack("<BH", ATT_WRITE_REQUEST, cccd) + enable_value
             self._sock.send(pdu)
             self._sock.settimeout(3.0)
             try:
@@ -189,7 +195,7 @@ class L2capBLE:
                 break
         self._sock.setblocking(True)
 
-        pdu = struct.pack('<BH', ATT_WRITE_COMMAND, WRITE_HANDLE) + frame
+        pdu = struct.pack("<BH", ATT_WRITE_COMMAND, WRITE_HANDLE) + frame
         self._sock.send(pdu)
 
         response = bytearray()
@@ -202,7 +208,7 @@ class L2capBLE:
             if ready:
                 data = self._sock.recv(512)
                 if data and data[0] == ATT_HANDLE_VALUE_NOTIFICATION:
-                    handle = struct.unpack('<H', data[1:3])[0]
+                    handle = struct.unpack("<H", data[1:3])[0]
                     if handle == NOTIFY_HANDLE:
                         response.extend(data[3:])
                         deadline = time.monotonic() + 0.8
@@ -220,16 +226,18 @@ class L2capBLE:
 
         if response[1] & 0x80:
             error_code = response[2]
-            _LOGGER.warning("Modbus error code %d for register 0x%04x", error_code, start)
+            _LOGGER.warning(
+                "Modbus error code %d for register 0x%04x", error_code, start
+            )
             return None
 
         byte_count = response[2]
-        data = response[3:3 + byte_count]
+        data = response[3 : 3 + byte_count]
 
         registers = []
         for i in range(0, len(data), 2):
             if i + 1 < len(data):
-                registers.append(struct.unpack('>H', data[i:i + 2])[0])
+                registers.append(struct.unpack(">H", data[i : i + 2])[0])
         return registers
 
     def disconnect(self):

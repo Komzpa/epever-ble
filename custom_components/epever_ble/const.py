@@ -1,4 +1,4 @@
-"""Constants for the EPEver BLE integration."""
+"""Constants for the EPEVER BLE integration."""
 
 DOMAIN = "epever_ble"
 

@@ -1,4 +1,4 @@
-"""CLI entry point for EPEver BLE.
+"""CLI entry point for EPEVER BLE.
 
 Usage:
     python -m epever_ble --scan
@@ -21,13 +21,12 @@ def display_data(data: dict):
     print("=" * 55)
 
     has_rt = any(
-        k in data
-        for k in ("pv_voltage", "batt_voltage", "load_voltage", "device_temp")
+        k in data for k in ("pv_voltage", "batt_voltage", "load_voltage", "device_temp")
     )
     has_energy = any(k in data for k in ("gen_today", "use_today"))
 
     if has_rt:
-        print(f"\n  --- Solar Panel (PV) ---")
+        print("\n  --- Solar Panel (PV) ---")
         if "pv_voltage" in data:
             print(f"  Voltage:  {data['pv_voltage']:>8.2f} V")
         if "pv_current" in data:
@@ -35,7 +34,7 @@ def display_data(data: dict):
         if "pv_power" in data:
             print(f"  Power:    {data['pv_power']:>8.2f} W")
 
-        print(f"\n  --- Battery ---")
+        print("\n  --- Battery ---")
         if "batt_voltage" in data:
             print(f"  Voltage:  {data['batt_voltage']:>8.2f} V")
         if "batt_charge_current" in data:
@@ -49,7 +48,7 @@ def display_data(data: dict):
         if "batt_temp" in data:
             print(f"  Temp:     {data['batt_temp']:>8.2f} C")
 
-        print(f"\n  --- Load ---")
+        print("\n  --- Load ---")
         if "load_voltage" in data:
             print(f"  Voltage:  {data['load_voltage']:>8.2f} V")
         if "load_current" in data:
@@ -61,15 +60,23 @@ def display_data(data: dict):
             print(f"\n  Device Temp: {data['device_temp']:>5.2f} C")
 
     if has_energy:
-        print(f"\n  --- Energy Generation ---")
-        for key, label in [("gen_today", "Today"), ("gen_month", "Month"),
-                           ("gen_year", "Year"), ("gen_total", "Total")]:
+        print("\n  --- Energy Generation ---")
+        for key, label in [
+            ("gen_today", "Today"),
+            ("gen_month", "Month"),
+            ("gen_year", "Year"),
+            ("gen_total", "Total"),
+        ]:
             if key in data:
                 print(f"  {label + ':':>8s}  {data[key]:>8.2f} kWh")
 
-        print(f"\n  --- Energy Consumption ---")
-        for key, label in [("use_today", "Today"), ("use_month", "Month"),
-                           ("use_year", "Year"), ("use_total", "Total")]:
+        print("\n  --- Energy Consumption ---")
+        for key, label in [
+            ("use_today", "Today"),
+            ("use_month", "Month"),
+            ("use_year", "Year"),
+            ("use_total", "Total"),
+        ]:
             if key in data:
                 print(f"  {label + ':':>8s}  {data[key]:>8.2f} kWh")
 
@@ -124,32 +131,46 @@ def scan_devices(timeout: int = 10):
     print("-" * 50)
     for addr, name in sorted(devices, key=lambda d: d[1]):
         marker = ""
-        if any(kw in name.lower() for kw in ["epever", "tracer", "hn_", "fapao", "solar", "bt05"]):
-            marker = "  <-- likely EPEver"
+        if any(
+            kw in name.lower()
+            for kw in ["epever", "tracer", "hn_", "fapao", "solar", "bt05"]
+        ):
+            marker = "  <-- likely EPEVER"
         print(f"{addr:<20} {name}{marker}")
 
-    print(f"\nConnect with: python -m epever_ble --addr <address>")
+    print("\nConnect with: python -m epever_ble --addr <address>")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="EPEVER BLE Solar Charge Controller Client")
-    parser.add_argument("--scan", action="store_true",
-                        help="Scan for nearby BLE devices")
-    parser.add_argument("--addr", type=str,
-                        help="BLE device address (XX:XX:XX:XX:XX:XX)")
-    parser.add_argument("--addr-type", type=str, default="public",
-                        choices=["public", "random"],
-                        help="BLE address type (default: public)")
-    parser.add_argument("--loop", action="store_true",
-                        help="Continuously poll data")
-    parser.add_argument("--interval", type=int, default=5,
-                        help="Poll interval in seconds (default: 5)")
-    parser.add_argument("--raw", type=str,
-                        help="Send raw Modbus hex frame and print response")
-    parser.add_argument("--slave", type=int, default=1,
-                        help="Modbus slave ID (default: 1)")
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="Enable debug logging")
+    parser = argparse.ArgumentParser(
+        description="EPEVER BLE Solar Charge Controller Client"
+    )
+    parser.add_argument(
+        "--scan", action="store_true", help="Scan for nearby BLE devices"
+    )
+    parser.add_argument(
+        "--addr", type=str, help="BLE device address (XX:XX:XX:XX:XX:XX)"
+    )
+    parser.add_argument(
+        "--addr-type",
+        type=str,
+        default="public",
+        choices=["public", "random"],
+        help="BLE address type (default: public)",
+    )
+    parser.add_argument("--loop", action="store_true", help="Continuously poll data")
+    parser.add_argument(
+        "--interval", type=int, default=5, help="Poll interval in seconds (default: 5)"
+    )
+    parser.add_argument(
+        "--raw", type=str, help="Send raw Modbus hex frame and print response"
+    )
+    parser.add_argument(
+        "--slave", type=int, default=1, help="Modbus slave ID (default: 1)"
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Enable debug logging"
+    )
     args = parser.parse_args()
 
     logging.basicConfig(

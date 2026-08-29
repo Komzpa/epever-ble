@@ -1,4 +1,4 @@
-"""Sensor platform for EPEver BLE integration."""
+"""Sensor platform for EPEVER BLE integration."""
 
 from __future__ import annotations
 
@@ -26,17 +26,17 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import EPEverBLECoordinator
+from .coordinator import EPEVERBLECoordinator
 
 
 @dataclass(frozen=True, kw_only=True)
-class EPEverSensorDescription(SensorEntityDescription):
-    """Describe an EPEver BLE sensor."""
+class EPEVERSensorDescription(SensorEntityDescription):
+    """Describe an EPEVER BLE sensor."""
 
 
-SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
+SENSOR_DESCRIPTIONS: tuple[EPEVERSensorDescription, ...] = (
     # --- PV ---
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="pv_voltage",
         translation_key="pv_voltage",
         name="PV Voltage",
@@ -45,7 +45,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="pv_current",
         translation_key="pv_current",
         name="PV Current",
@@ -54,7 +54,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="pv_power",
         translation_key="pv_power",
         name="PV Power",
@@ -64,7 +64,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         suggested_display_precision=2,
     ),
     # --- Battery ---
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="batt_voltage",
         translation_key="batt_voltage",
         name="Battery Voltage",
@@ -73,7 +73,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="batt_charge_current",
         translation_key="batt_charge_current",
         name="Battery Charge Current",
@@ -82,7 +82,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="batt_charge_power",
         translation_key="batt_charge_power",
         name="Battery Charge Power",
@@ -91,7 +91,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="batt_soc",
         translation_key="batt_soc",
         name="Battery State of Charge",
@@ -99,7 +99,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="batt_temp",
         translation_key="batt_temp",
         name="Battery Temperature",
@@ -108,14 +108,14 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="charge_mode",
         translation_key="charge_mode",
         name="Charging Mode",
         icon="mdi:battery-charging",
     ),
     # --- Load ---
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="load_voltage",
         translation_key="load_voltage",
         name="Load Voltage",
@@ -124,7 +124,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="load_current",
         translation_key="load_current",
         name="Load Current",
@@ -133,7 +133,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="load_power",
         translation_key="load_power",
         name="Load Power",
@@ -143,7 +143,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         suggested_display_precision=2,
     ),
     # --- Device ---
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="device_temp",
         translation_key="device_temp",
         name="Device Temperature",
@@ -153,7 +153,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         suggested_display_precision=1,
     ),
     # --- Energy Generation ---
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="gen_today",
         translation_key="gen_today",
         name="Energy Generated Today",
@@ -162,7 +162,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="gen_month",
         translation_key="gen_month",
         name="Energy Generated This Month",
@@ -171,7 +171,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="gen_year",
         translation_key="gen_year",
         name="Energy Generated This Year",
@@ -180,7 +180,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="gen_total",
         translation_key="gen_total",
         name="Total Energy Generated",
@@ -190,7 +190,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         suggested_display_precision=2,
     ),
     # --- Energy Consumption ---
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="use_today",
         translation_key="use_today",
         name="Energy Consumed Today",
@@ -199,7 +199,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="use_month",
         translation_key="use_month",
         name="Energy Consumed This Month",
@@ -208,7 +208,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="use_year",
         translation_key="use_year",
         name="Energy Consumed This Year",
@@ -217,7 +217,7 @@ SENSOR_DESCRIPTIONS: tuple[EPEverSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=2,
     ),
-    EPEverSensorDescription(
+    EPEVERSensorDescription(
         key="use_total",
         translation_key="use_total",
         name="Total Energy Consumed",
@@ -234,25 +234,25 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    coordinator: EPEverBLECoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: EPEVERBLECoordinator = hass.data[DOMAIN][entry.entry_id]
     mac = entry.data[CONF_MAC]
 
     async_add_entities(
-        EPEverSensor(coordinator, description, mac, entry.title)
+        EPEVERSensor(coordinator, description, mac, entry.title)
         for description in SENSOR_DESCRIPTIONS
     )
 
 
-class EPEverSensor(CoordinatorEntity[EPEverBLECoordinator], SensorEntity):
-    """A sensor entity for one EPEver data point."""
+class EPEVERSensor(CoordinatorEntity[EPEVERBLECoordinator], SensorEntity):
+    """A sensor entity for one EPEVER data point."""
 
     _attr_has_entity_name = True
-    entity_description: EPEverSensorDescription
+    entity_description: EPEVERSensorDescription
 
     def __init__(
         self,
-        coordinator: EPEverBLECoordinator,
-        description: EPEverSensorDescription,
+        coordinator: EPEVERBLECoordinator,
+        description: EPEVERSensorDescription,
         mac: str,
         device_name: str,
     ) -> None:
@@ -262,7 +262,7 @@ class EPEverSensor(CoordinatorEntity[EPEverBLECoordinator], SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, mac)},
             name=device_name,
-            manufacturer="EPEver",
+            manufacturer="EPEVER",
         )
 
     @property
