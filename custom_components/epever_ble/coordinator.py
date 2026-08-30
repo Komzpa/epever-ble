@@ -1,7 +1,7 @@
 """DataUpdateCoordinator for EPEVER BLE."""
 
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -44,7 +44,6 @@ class EPEVERBLECoordinator(DataUpdateCoordinator):
             await self._ble.disconnect()
             raise UpdateFailed("No data received from controller")
 
-        data["last_successful_poll"] = datetime.now(UTC)
         return data
 
     async def async_shutdown(self) -> None:

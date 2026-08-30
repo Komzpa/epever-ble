@@ -21,7 +21,6 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -152,13 +151,6 @@ SENSOR_DESCRIPTIONS: tuple[EPEVERSensorDescription, ...] = (
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
-    ),
-    EPEVERSensorDescription(
-        key="last_successful_poll",
-        translation_key="last_successful_poll",
-        name="Last Successful Poll",
-        device_class=SensorDeviceClass.TIMESTAMP,
-        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     # --- Energy Generation ---
     EPEVERSensorDescription(
