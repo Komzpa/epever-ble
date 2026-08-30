@@ -41,5 +41,12 @@
     "abort": {
       "already_configured": "This device is already configured."
     }
+  },
+  "entity": {
+    "sensor": {
+      "last_successful_poll": {
+        "name": "Last successful poll"
+      }
+    }
   }
 }
