@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 CHARGING_MODES = {0: "Not Charging", 1: "Float", 2: "Boost", 3: "Equalization"}
 REGISTER_BATCHES = (
     (0x3100, 8, "pv_battery"),
+    (0x3108, 4, "battery_output"),
     (0x310C, 8, "load_temperature"),
     (0x311A, 2, "soc"),
     (0x3200, 3, "status"),
@@ -53,11 +54,18 @@ def _merge_register_batch(data: dict, batch: str, registers: list[int] | None) -
         if len(registers) > 3:
             data["pv_power"] = _combine_32bit(registers[2], registers[3])
         if len(registers) > 4:
-            data["batt_voltage"] = registers[4] / 100.0
+            data["pv_output_voltage"] = registers[4] / 100.0
         if len(registers) > 5:
             data["batt_charge_current"] = registers[5] / 100.0
         if len(registers) > 7:
             data["batt_charge_power"] = _combine_32bit(registers[6], registers[7])
+    elif batch == "battery_output":
+        if len(registers) > 0:
+            data["batt_voltage"] = registers[0] / 100.0
+        if len(registers) > 1:
+            data["batt_output_current"] = registers[1] / 100.0
+        if len(registers) > 3:
+            data["batt_output_power"] = _combine_32bit(registers[2], registers[3])
     elif batch == "load_temperature":
         if len(registers) > 0:
             data["load_voltage"] = registers[0] / 100.0
@@ -69,6 +77,10 @@ def _merge_register_batch(data: dict, batch: str, registers: list[int] | None) -
             data["batt_temp"] = _signed_temp(registers[4])
         if len(registers) > 5:
             data["device_temp"] = _signed_temp(registers[5])
+        if len(registers) > 6:
+            # XTRA3210N G3 reports centidegrees here despite the G3 protocol
+            # table listing a coefficient of 1 for register 0x3112.
+            data["mosfet_temp"] = registers[6] / 100.0
     elif batch == "soc":
         data["batt_soc"] = registers[0]
     elif batch == "status" and len(registers) >= 2:

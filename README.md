@@ -17,9 +17,9 @@ Other EPEVER controllers are not implied compatible. Models using an external eB
 ## What it reads
 
 - **Solar panel**: voltage, current, power
-- **Battery**: voltage, charge current, signed net current, power, state of charge, temperature, charging mode
+- **Battery**: voltage, charge/output/net current, charge/output power, state of charge, remote temperature, charging mode
 - **Load**: voltage, current, power
-- **Device**: temperature
+- **Device**: equipment and MOSFET temperature
 - **Energy statistics**: daily/monthly/yearly/total generation and consumption
 
 ```
@@ -150,17 +150,21 @@ The integration creates a device with the following sensor entities:
 | PV Voltage | V | Solar panel voltage |
 | PV Current | A | Solar panel current |
 | PV Power | W | Solar panel power |
+| PV Output Voltage | V | Charging-branch voltage at the battery-side PV output |
 | Battery Voltage | V | Battery voltage |
 | Battery Charge Current | A | Battery charge current |
+| Battery Output Current | A | Battery output current reported by the controller |
+| Battery Output Power | W | Battery output power reported by the controller |
 | Battery Net Current | A | Controller-side net current; positive is charging and negative is discharging |
 | Battery Charge Power | W | Battery charge power |
 | Battery State of Charge | % | Battery SOC |
-| Battery Temperature | °C | Battery temperature |
+| Remote Battery Temperature | °C | Optional remote battery-temperature input |
 | Charging Mode | | Not Charging / Float / Boost / Equalization |
 | Load Voltage | V | Load output voltage |
 | Load Current | A | Load output current |
 | Load Power | W | Load output power |
 | Device Temperature | °C | Controller internal temperature |
+| MOSFET Temperature | °C | Controller MOSFET temperature |
 | Energy Generated Today | kWh | Daily solar generation |
 | Energy Generated This Month | kWh | Monthly solar generation |
 | Energy Generated This Year | kWh | Yearly solar generation |
@@ -197,13 +201,18 @@ The Modbus register map is the standard EPEVER Tracer map:
 | `0x3100` | PV Voltage | V | /100 |
 | `0x3101` | PV Current | A | /100 |
 | `0x3102-03` | PV Power | W | /100 (32-bit) |
-| `0x3104` | Battery Voltage | V | /100 |
-| `0x3105` | Battery Charge Current | A | /100 |
+| `0x3104` | PV Output Voltage | V | /100 |
+| `0x3105` | PV Output / Battery Charge Current | A | /100 |
+| `0x3106-07` | PV Output / Battery Charge Power | W | /100 (32-bit) |
+| `0x3108` | Battery Voltage | V | /100 |
+| `0x3109` | Battery Output Current | A | /100 |
+| `0x310A-0B` | Battery Output Power | W | /100 (32-bit) |
 | `0x331B-1C` | Battery Net Current | A | /100 (signed 32-bit) |
 | `0x310C` | Load Voltage | V | /100 |
 | `0x310D` | Load Current | A | /100 |
-| `0x3110` | Battery Temperature | C | /100 (signed) |
+| `0x3110` | Remote Battery Temperature | C | /100 (signed) |
 | `0x3111` | Device Temperature | C | /100 (signed) |
+| `0x3112` | MOSFET Temperature | C | /100 on the validated XTRA3210N G3 |
 | `0x311A` | Battery SOC | % | |
 | `0x3200` | Battery Status | | bitfield |
 | `0x3201` | Charging Status | | bitfield |

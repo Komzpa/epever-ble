@@ -10,7 +10,8 @@ class FakeBLE:
         self.calls: list[tuple[int, int, int]] = []
         self.responses = {
             (0x3100, 8): [398, 0, 0, 0, 1303, 0, 0, 0],
-            (0x310C, 8): [1303, 842, 10779, 0, 2500, 2630, 0, 0],
+            (0x3108, 4): [1298, 314, 4075, 0],
+            (0x310C, 8): [1303, 842, 10779, 0, 2500, 2630, 2800, 0],
             (0x311A, 2): [68, 0],
             (0x3200, 3): [0, 2 << 2, 0],
             (0x331B, 2): [0x007B, 0x0000],
@@ -33,14 +34,18 @@ def test_read_all_data_maps_xtra3210n_g3_register_values(monkeypatch) -> None:
         "pv_voltage": 3.98,
         "pv_current": 0.0,
         "pv_power": 0.0,
-        "batt_voltage": 13.03,
+        "pv_output_voltage": 13.03,
         "batt_charge_current": 0.0,
         "batt_charge_power": 0.0,
+        "batt_voltage": 12.98,
+        "batt_output_current": 3.14,
+        "batt_output_power": 40.75,
         "load_voltage": 13.03,
         "load_current": 8.42,
         "load_power": 107.79,
         "batt_temp": 25.0,
         "device_temp": 26.3,
+        "mosfet_temp": 28.0,
         "batt_soc": 68,
         "charge_mode": "Boost",
         "batt_net_current": 1.23,
@@ -55,6 +60,7 @@ def test_read_all_data_maps_xtra3210n_g3_register_values(monkeypatch) -> None:
     }
     assert ble.calls == [
         (0x3100, 8, 1),
+        (0x3108, 4, 1),
         (0x310C, 8, 1),
         (0x311A, 2, 1),
         (0x3200, 3, 1),

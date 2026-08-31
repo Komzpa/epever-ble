@@ -46,6 +46,21 @@
     "sensor": {
       "batt_net_current": {
         "name": "Battery Net Current"
+      },
+      "batt_output_current": {
+        "name": "Battery Output Current"
+      },
+      "batt_output_power": {
+        "name": "Battery Output Power"
+      },
+      "batt_temp": {
+        "name": "Remote Battery Temperature"
+      },
+      "mosfet_temp": {
+        "name": "MOSFET Temperature"
+      },
+      "pv_output_voltage": {
+        "name": "PV Output Voltage"
       }
     }
   }
