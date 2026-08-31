@@ -17,7 +17,7 @@ Other EPEVER controllers are not implied compatible. Models using an external eB
 ## What it reads
 
 - **Solar panel**: voltage, current, power
-- **Battery**: voltage, charge current, power, state of charge, temperature, charging mode
+- **Battery**: voltage, charge current, signed net current, power, state of charge, temperature, charging mode
 - **Load**: voltage, current, power
 - **Device**: temperature
 - **Energy statistics**: daily/monthly/yearly/total generation and consumption
@@ -152,6 +152,7 @@ The integration creates a device with the following sensor entities:
 | PV Power | W | Solar panel power |
 | Battery Voltage | V | Battery voltage |
 | Battery Charge Current | A | Battery charge current |
+| Battery Net Current | A | Controller-side net current; positive is charging and negative is discharging |
 | Battery Charge Power | W | Battery charge power |
 | Battery State of Charge | % | Battery SOC |
 | Battery Temperature | °C | Battery temperature |
@@ -198,6 +199,7 @@ The Modbus register map is the standard EPEVER Tracer map:
 | `0x3102-03` | PV Power | W | /100 (32-bit) |
 | `0x3104` | Battery Voltage | V | /100 |
 | `0x3105` | Battery Charge Current | A | /100 |
+| `0x331B-1C` | Battery Net Current | A | /100 (signed 32-bit) |
 | `0x310C` | Load Voltage | V | /100 |
 | `0x310D` | Load Current | A | /100 |
 | `0x3110` | Battery Temperature | C | /100 (signed) |
@@ -213,6 +215,7 @@ The Modbus register map is the standard EPEVER Tracer map:
 - The standalone CLI is Linux-only because it uses Linux-specific L2CAP Bluetooth sockets. The Home Assistant integration uses Home Assistant's cross-adapter Bluetooth API instead.
 - BLE default MTU is 20 bytes, so responses for large register reads arrive fragmented. The script works around this by reading in small batches (8 registers at a time).
 - The built-in `HN_` profile was directly validated on an XTRA3210N G3. Other models must be tested individually; sharing the EPEVER Modbus register map does not prove BLE profile compatibility. Models using external BLE dongles (eBox-BLE-01) may use different GATT UUIDs (typically FFE0/FFE1).
+- Battery Net Current is the controller-side value reported by registers `0x331B-0x331C`. External chargers connected directly to a shared battery bus bypass the controller's charging input; this entity must not be treated as a confirmed whole-bus shunt measurement.
 - Device names and controller models are not hardcoded in the integration. The config entry and Home Assistant device registry own the user-visible identity.
 
 ## Background
