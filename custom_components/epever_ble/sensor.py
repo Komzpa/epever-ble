@@ -83,6 +83,15 @@ SENSOR_DESCRIPTIONS: tuple[EPEVERSensorDescription, ...] = (
         suggested_display_precision=2,
     ),
     EPEVERSensorDescription(
+        key="batt_net_current",
+        translation_key="batt_net_current",
+        name="Battery Net Current",
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=2,
+    ),
+    EPEVERSensorDescription(
         key="batt_charge_power",
         translation_key="batt_charge_power",
         name="Battery Charge Power",
