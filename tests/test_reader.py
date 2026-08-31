@@ -91,10 +91,19 @@ def test_display_data_shows_distinct_batt_net_current(capsys) -> None:
     epever_cli.display_data(data)
     out = capsys.readouterr().out
 
-    assert "  Current:  " in out
+    assert "  Charge Current:" in out
     assert "  Net Current:" in out
     assert "-1.75" in out
-    assert "  Current:" in out
+
+
+def test_display_data_shows_partial_net_current(capsys) -> None:
+    epever_cli.display_data({"batt_net_current": -3.14})
+
+    out = capsys.readouterr().out
+
+    assert "  --- Battery ---" in out
+    assert "  Net Current:" in out
+    assert "-3.14" in out
 
 
 def test_read_all_data_keeps_missing_batches_absent(monkeypatch) -> None:

@@ -21,7 +21,18 @@ def display_data(data: dict):
     print("=" * 55)
 
     has_rt = any(
-        k in data for k in ("pv_voltage", "batt_voltage", "load_voltage", "device_temp")
+        k in data
+        for k in (
+            "pv_voltage",
+            "pv_output_voltage",
+            "batt_voltage",
+            "batt_charge_current",
+            "batt_output_current",
+            "batt_net_current",
+            "load_voltage",
+            "device_temp",
+            "mosfet_temp",
+        )
     )
     has_energy = any(k in data for k in ("gen_today", "use_today"))
 
@@ -33,22 +44,28 @@ def display_data(data: dict):
             print(f"  Current:  {data['pv_current']:>8.2f} A")
         if "pv_power" in data:
             print(f"  Power:    {data['pv_power']:>8.2f} W")
+        if "pv_output_voltage" in data:
+            print(f"  Output Voltage: {data['pv_output_voltage']:>6.2f} V")
 
         print("\n  --- Battery ---")
         if "batt_voltage" in data:
             print(f"  Voltage:  {data['batt_voltage']:>8.2f} V")
         if "batt_charge_current" in data:
-            print(f"  Current:  {data['batt_charge_current']:>8.2f} A")
+            print(f"  Charge Current: {data['batt_charge_current']:>5.2f} A")
+        if "batt_output_current" in data:
+            print(f"  Output Current: {data['batt_output_current']:>5.2f} A")
         if "batt_net_current" in data:
             print(f"  Net Current: {data['batt_net_current']:>8.2f} A")
         if "batt_charge_power" in data:
-            print(f"  Power:    {data['batt_charge_power']:>8.2f} W")
+            print(f"  Charge Power: {data['batt_charge_power']:>7.2f} W")
+        if "batt_output_power" in data:
+            print(f"  Output Power: {data['batt_output_power']:>7.2f} W")
         if "batt_soc" in data:
             print(f"  SOC:      {data['batt_soc']:>7d} %")
         if "charge_mode" in data:
             print(f"  Mode:     {data['charge_mode']:>12s}")
         if "batt_temp" in data:
-            print(f"  Temp:     {data['batt_temp']:>8.2f} C")
+            print(f"  Remote Temp: {data['batt_temp']:>6.2f} C")
 
         print("\n  --- Load ---")
         if "load_voltage" in data:
@@ -60,6 +77,8 @@ def display_data(data: dict):
 
         if "device_temp" in data:
             print(f"\n  Device Temp: {data['device_temp']:>5.2f} C")
+        if "mosfet_temp" in data:
+            print(f"  MOSFET Temp: {data['mosfet_temp']:>5.2f} C")
 
     if has_energy:
         print("\n  --- Energy Generation ---")
