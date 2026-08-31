@@ -16,6 +16,7 @@ REGISTER_BATCHES = (
     (0x310C, 8, "load_temperature"),
     (0x311A, 2, "soc"),
     (0x3200, 3, "status"),
+    (0x331B, 2, "net_battery_current"),
     (0x330C, 8, "generated_energy"),
     (0x3304, 8, "consumed_energy"),
 )
@@ -24,6 +25,13 @@ READ_DELAY = 0.3
 
 def _combine_32bit(low: int, high: int) -> float:
     return (high * 65536 + low) / 100.0
+
+
+def _combine_signed_32bit(low: int, high: int) -> float:
+    value = high * 65536 + low
+    if value > 0x7FFFFFFF:
+        value -= 0x100000000
+    return value / 100.0
 
 
 def _signed_temp(val: int) -> float:
@@ -66,6 +74,8 @@ def _merge_register_batch(data: dict, batch: str, registers: list[int] | None) -
     elif batch == "status" and len(registers) >= 2:
         charge_mode = (registers[1] >> 2) & 0x03
         data["charge_mode"] = CHARGING_MODES.get(charge_mode, f"Unknown({charge_mode})")
+    elif batch == "net_battery_current" and len(registers) >= 2:
+        data["batt_net_current"] = _combine_signed_32bit(registers[0], registers[1])
     elif batch == "generated_energy" and len(registers) >= 8:
         data["gen_today"] = _combine_32bit(registers[0], registers[1])
         data["gen_month"] = _combine_32bit(registers[2], registers[3])
