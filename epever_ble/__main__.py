@@ -39,6 +39,8 @@ def display_data(data: dict):
             print(f"  Voltage:  {data['batt_voltage']:>8.2f} V")
         if "batt_charge_current" in data:
             print(f"  Current:  {data['batt_charge_current']:>8.2f} A")
+        if "batt_net_current" in data:
+            print(f"  Net Current: {data['batt_net_current']:>8.2f} A")
         if "batt_charge_power" in data:
             print(f"  Power:    {data['batt_charge_power']:>8.2f} W")
         if "batt_soc" in data:

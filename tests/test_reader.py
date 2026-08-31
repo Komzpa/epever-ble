@@ -1,6 +1,7 @@
 import asyncio
 
 import epever_ble
+from epever_ble import __main__ as epever_cli
 from epever_ble import async_read_all_data, read_all_data
 
 
@@ -71,6 +72,23 @@ def test_read_all_data_parses_negative_net_battery_current(monkeypatch) -> None:
     data = read_all_data(ble)
 
     assert data["batt_net_current"] == -3.14
+
+
+def test_display_data_shows_distinct_batt_net_current(capsys) -> None:
+    data = {
+        "pv_voltage": 12.0,
+        "batt_voltage": 12.5,
+        "batt_charge_current": 4.2,
+        "batt_net_current": -1.75,
+    }
+
+    epever_cli.display_data(data)
+    out = capsys.readouterr().out
+
+    assert "  Current:  " in out
+    assert "  Net Current:" in out
+    assert "-1.75" in out
+    assert "  Current:" in out
 
 
 def test_read_all_data_keeps_missing_batches_absent(monkeypatch) -> None:
